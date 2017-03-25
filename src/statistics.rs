@@ -34,10 +34,12 @@ pub fn hist(sketch: &[KmerCount]) -> Vec<u64> {
 
 #[test]
 fn test_hist() {
+    const BLK: (u64, u8) = (0, 0);  // blank kmer for testing
+
     let sketch = vec![
-        KmerCount {hash: 1, kmer: vec![], count: 1, extra_count: 0},
-        KmerCount {hash: 2, kmer: vec![], count: 1, extra_count: 0},
-        KmerCount {hash: 3, kmer: vec![], count: 1, extra_count: 0},
+        KmerCount {hash: 1, kmer: BLK, count: 1, extra_count: 0},
+        KmerCount {hash: 2, kmer: BLK, count: 1, extra_count: 0},
+        KmerCount {hash: 3, kmer: BLK, count: 1, extra_count: 0},
     ];
 
     let hist_data = hist(&sketch);
@@ -45,10 +47,10 @@ fn test_hist() {
     assert_eq!(hist_data[0], 3);
 
     let sketch = vec![
-        KmerCount {hash: 1, kmer: vec![], count: 4, extra_count: 0},
-        KmerCount {hash: 2, kmer: vec![], count: 2, extra_count: 0},
-        KmerCount {hash: 3, kmer: vec![], count: 4, extra_count: 0},
-        KmerCount {hash: 4, kmer: vec![], count: 3, extra_count: 0},
+        KmerCount {hash: 1, kmer: BLK, count: 4, extra_count: 0},
+        KmerCount {hash: 2, kmer: BLK, count: 2, extra_count: 0},
+        KmerCount {hash: 3, kmer: BLK, count: 4, extra_count: 0},
+        KmerCount {hash: 4, kmer: BLK, count: 3, extra_count: 0},
     ];
 
     let hist_data = hist(&sketch);

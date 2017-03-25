@@ -50,7 +50,7 @@ impl JSONSketch {
         let mut count_list = Vec::with_capacity(kmercounts.len());
         for hash in &kmercounts {
             hash_list.push(hash.hash.to_string());
-            kmer_list.push(String::from_utf8(hash.kmer.clone()).unwrap());
+            kmer_list.push(String::from_utf8(bitmer_to_bytes(hash.kmer)).unwrap());
             count_list.push(hash.count);
         }
         JSONSketch {
@@ -78,8 +78,8 @@ impl JSONSketch {
             }
             let kmer;
             match self.kmers {
-                Some(ref v) => kmer = v[i].clone().into_bytes(),
-                None => kmer = Vec::new(),
+                Some(ref v) => kmer = bytes_to_bitmer(v[i].as_bytes()),
+                None => kmer = (0, 0),
             }
             let count;
             match self.counts {
@@ -108,7 +108,7 @@ impl JSONSketch {
         let mut count_list = Vec::with_capacity(filtered_hashes.len());
         for hash in &filtered_hashes {
             hash_list.push(hash.hash.to_string());
-            kmer_list.push(String::from_utf8(hash.kmer.clone()).unwrap());
+            kmer_list.push(String::from_utf8(bitmer_to_bytes(hash.kmer)).unwrap());
             count_list.push(hash.count);
         }
         self.hashes = hash_list;
@@ -133,12 +133,12 @@ impl BinarySketch {
         let mut kmer_list = Vec::with_capacity(kmercounts.len());
         let mut count_list = Vec::with_capacity(kmercounts.len());
         for hash in &kmercounts {
-            kmer_list.push(bytes_to_bitmer(&hash.kmer).0 as u64);
+            kmer_list.push(hash.kmer.0);
             count_list.push(hash.count);
         }
         BinarySketch {
             len: kmercounts.len() as u32,
-            kmer_size: kmercounts[0].kmer.len() as u8,
+            kmer_size: kmercounts[0].kmer.1,
             kmers: kmer_list.into_boxed_slice(), 
             counts: count_list.into_boxed_slice(),
         }
@@ -147,12 +147,12 @@ impl BinarySketch {
     pub fn get_kmers(&self) -> Option<Vec<KmerCount>> {
         let mut kmercounts = Vec::with_capacity(self.len as usize);
         for i in 0..self.len {
-            let bitmer = (*self.kmers)[i as usize];
-            let kmer = bitmer_to_bytes((bitmer, self.kmer_size));
+            let bitmer = ((*self.kmers)[i as usize], self.kmer_size);
+            let kmer = bitmer_to_bytes(bitmer);
             kmercounts.push(KmerCount {
-                // there's an assumption here that the seed is 42
-                hash: hash_f(&kmer, 42),
-                kmer: kmer,
+                // there's an assumption here that the seed is 0
+                hash: hash_f(&kmer, 0),
+                kmer: bitmer,
                 count: (*self.counts)[i as usize],
                 extra_count: 0,
             });

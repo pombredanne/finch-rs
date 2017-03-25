@@ -4,6 +4,7 @@ use std::hash::{Hasher, BuildHasherDefault};
 use std::usize;
 
 use murmurhash3::murmurhash3_x64_128;
+use needletail::bitkmer::{BitKmer, bytes_to_bitmer};
 
 
 // The individual items to store in the BinaryHeap
@@ -71,14 +72,14 @@ impl Hasher for NoHashHasher {
 #[derive(Debug, Clone)]
 pub struct KmerCount {
     pub hash: ItemHash,
-    pub kmer: Vec<u8>,
+    pub kmer: BitKmer,
     pub count: u16,
     pub extra_count: u16,
 }
 
 
 pub struct MinHashKmers {
-    hashes: BinaryHeap<HashedItem<Vec<u8>>>,
+    hashes: BinaryHeap<HashedItem<BitKmer>>,
     counts: HashMap<ItemHash, (u16, u16), BuildHasherDefault<NoHashHasher>>,
     total_count: u64,
     size: usize,
@@ -120,7 +121,7 @@ impl MinHashKmers {
                 // let _ = self.heap_lock.lock().unwrap();
                 self.hashes.push(HashedItem {
                     hash: new_hash,
-                    item: kmer.to_owned(),
+                    item: bytes_to_bitmer(kmer),
                 });
                 // let _map_lock = self.map_lock.lock().unwrap();
                 self.counts.insert(new_hash, (1u16, extra_count as u16));
@@ -162,36 +163,15 @@ fn test_minhashkmers() {
     queue.push(b"ac", 0);
     queue.push(b"ac", 1);
     let array = queue.into_vec();
-    assert_eq!(array[0].kmer, vec![b'c', b'c']);
+    assert_eq!(array[0].kmer, (5u64, 2u8));
     assert_eq!(array[0].count, 1u16);
     assert_eq!(array[0].extra_count, 1u16);
     assert!(array[0].hash < array[1].hash);
-    assert_eq!(array[1].kmer, vec![b'c', b'a']);
+    assert_eq!(array[1].kmer, (4u64, 2u8));
     assert_eq!(array[1].count, 1u16);
     assert_eq!(array[1].extra_count, 0u16);
     assert!(array[1].hash < array[2].hash);
-    assert_eq!(array[2].kmer, vec![b'a', b'c']);
+    assert_eq!(array[2].kmer, (1u64, 2u8));
     assert_eq!(array[2].count, 2u16);
     assert_eq!(array[2].extra_count, 1u16);
-}
-
-#[test]
-fn test_longer_sequence() {
-    let mut queue = MinHashKmers::new(100, 42);
-
-    // for "ACACGGAAATCCTCACGTCGCGGCGCCGGGC"
-
-    // hashes should be:
-    //     (3186265289206375993,
-    //      3197567229193635484,
-    //      5157287830980272133,
-    //      7515070071080094037,
-    //      9123665698461883699,
-    //      9650810550987401968,
-    //      10462414310441547028,
-    //      12872951831549606632,
-    //      13584836512372089324,
-    //      14093285637546356047,
-    //      16069721578136260683)
-
 }

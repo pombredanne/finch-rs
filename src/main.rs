@@ -278,14 +278,15 @@ fn main() {
 
                     let mut total_gc: u64 = 0;
                     for kmer in &kmers {
-                        total_gc += kmer.kmer.iter().map(|b| {
-                            match *b {
-                                b'G' | b'g' | b'C' | b'c' => kmer.count as u64,
-                                _ => 0,
+                        let mut working_kmer = kmer.kmer.0;
+                        for _ in 0..kmer.kmer.1 {
+                            if (working_kmer & 3 == 1) || (working_kmer & 3 == 2) {
+                                total_gc += kmer.count as u64;
                             }
-                        }).sum();
+                            working_kmer >>= 2;
+                        }
                     }
-                    let total_bases = mean.0 * kmers[0].kmer.len() as f32;
+                    let total_bases = mean.0 * kmers[0].kmer.1 as f32;
                     println!("  Estimated % GC: {}%", 100f32 * total_gc as f32 / total_bases);
                 }
             }

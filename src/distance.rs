@@ -3,7 +3,7 @@ use serialization::SketchDistance;
 
 
 pub fn distance(sketch1: &Vec<KmerCount>, sketch2: &Vec<KmerCount>, sketch1_name: &str, sketch2_name: &str, mash_mode: bool) -> Result<SketchDistance, &'static str> {
-    if sketch1[0].kmer.len() != sketch2[0].kmer.len() {
+    if sketch1[0].kmer.1 != sketch2[0].kmer.1 {
         return Err("Sketches have different sized kmers");
     }
     let distances;
@@ -16,7 +16,7 @@ pub fn distance(sketch1: &Vec<KmerCount>, sketch2: &Vec<KmerCount>, sketch1_name
     let jaccard = distances.1;
     let common = distances.2;
     let total = distances.3;
-    let mash_distance: f64 = -1.0 * ((2.0 * jaccard) / (1.0 + jaccard)).ln() / sketch1[0].kmer.len() as f64;
+    let mash_distance: f64 = -1.0 * ((2.0 * jaccard) / (1.0 + jaccard)).ln() / sketch1[0].kmer.1 as f64;
     Ok(SketchDistance {
         containment: containment,
         jaccard: jaccard,
